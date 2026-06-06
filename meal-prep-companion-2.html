@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Prep Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d5a27;
+    --green-light: #4a8c40;
+    --green-pale: #e8f0e6;
+    --cream: #faf7f2;
+    --warm: #f5efe6;
+    --accent: #c17f3a;
+    --accent-light: #e8a85a;
+    --text: #1e2a1a;
+    --text-soft: #5a6b54;
+    --white: #ffffff;
+    --shadow: 0 4px 24px rgba(45,90,39,0.10);
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  header {
+    background: var(--green);
+    color: var(--white);
+    padding: 28px 24px 22px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  header p {
+    font-size: 0.82rem;
+    opacity: 0.75;
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* Tab Nav */
+  .tabs {
+    display: flex;
+    background: var(--green);
+    padding: 0 16px 16px;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    border-radius: 30px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: var(--white);
+    color: var(--green);
+    border-color: var(--white);
+  }
+
+  .page { display: none; padding: 20px 16px; }
+  .page.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  /* Pantry */
+  .pantry-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .pantry-category h3 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .pantry-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--green-pale);
+    font-size: 0.85rem;
+  }
+
+  .pantry-item input[type="checkbox"] {
+    accent-color: var(--green);
+    width: 16px; height: 16px;
+    cursor: pointer;
+  }
+
+  .pantry-item label { cursor: pointer; flex: 1; }
+  .pantry-item label.checked { text-decoration: line-through; opacity: 0.4; }
+
+  .add-item-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .add-item-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1.5px solid var(--green-pale);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    color: var(--text);
+    background: var(--cream);
+  }
+  .add-item-row input:focus { border-color: var(--green-light); }
+
+  /* Buttons */
+  .btn {
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .btn-green {
+    background: var(--green);
+    color: var(--white);
+  }
+  .btn-green:hover { background: var(--green-light); }
+
+  .btn-accent {
+    background: var(--accent);
+    color: var(--white);
+  }
+  .btn-accent:hover { background: var(--accent-light); }
+
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--green);
+    color: var(--green);
+  }
+  .btn-outline:hover { background: var(--green-pale); }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+  }
+
+  /* Noon Planner */
+  .suggestion-hero {
+    background: linear-gradient(135deg, var(--green) 60%, var(--green-light));
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    color: var(--white);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .suggestion-hero::before {
+    content: '🌿';
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    font-size: 80px;
+    opacity: 0.12;
+    transform: rotate(20deg);
+  }
+
+  .suggestion-hero .label {
+    font-size: 0.72rem;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+
+  .suggestion-hero h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .suggestion-hero .time-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.78rem;
+    margin-top: 4px;
+  }
+
+  .prep-task {
+    background: var(--warm);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .prep-task .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+
+  .prep-task p { font-size: 0.88rem; color: var(--text); }
+
+  .recipe-steps { margin-top: 10px; }
+
+  .step {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--green-pale);
+    align-items: flex-start;
+    font-size: 0.88rem;
+  }
+
+  .step:last-child { border-bottom: none; }
+
+  .step-num {
+    width: 24px;
+    height: 24px;
+    background: var(--green);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .done-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    border-radius: 14px;
+    font-size: 1rem;
+  }
+
+  /* Ingredients list */
+  .ingredient-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0;
+  }
+
+  .tag {
+    background: var(--green-pale);
+    color: var(--green);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  /* Saturday Prep */
+  .prep-block {
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--warm);
+    border: 1.5px solid #e8ddd0;
+  }
+
+  .prep-block h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+
+  .prep-block .meta {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .prep-block ul {
+    padding-left: 18px;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    line-height: 1.8;
+  }
+
+  .vitamix-card {
+    background: linear-gradient(135deg, #1a3a35, #2d5a50);
+    color: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  .vitamix-card .v-label {
+    font-size: 0.7rem;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .vitamix-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+  }
+
+  .vitamix-card p {
+    font-size: 0.84rem;
+    opacity: 0.8;
+    line-height: 1.6;
+  }
+
+  /* Checkbox done state */
+  .prep-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--green-pale);
+    cursor: pointer;
+  }
+
+  .prep-check:last-child { border-bottom: none; }
+  .prep-check input { accent-color: var(--green); width: 17px; height: 17px; }
+  .prep-check span { font-size: 0.87rem; }
+  .prep-check input:checked + span { text-decoration: line-through; opacity: 0.4; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--green-pale);
+    margin: 16px 0;
+  }
+
+  /* Select */
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--green-pale);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    background: var(--cream);
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+  select:focus { border-color: var(--green); }
+
+  .tonight-done {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .tonight-done .big-emoji { font-size: 48px; margin-bottom: 12px; }
+  .tonight-done h2 { font-family: 'DM Serif Display', serif; color: var(--green); margin-bottom: 6px; }
+  .tonight-done p { font-size: 0.88rem; color: var(--text-soft); }
+
+  .full-width { grid-column: 1 / -1; }
+
+  .custom-item-select {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .custom-item-select select { margin-bottom: 0; flex: 1; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🥦 Meal Prep Companion</h1>
+  <p>Your 5pm self will thank your noon self</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPage('noon')">🕛 Noon Planner</button>
+  <button class="tab" onclick="showPage('pantry')">🧺 My Pantry</button>
+  <button class="tab" onclick="showPage('saturday')">📅 Saturday Prep</button>
+  <button class="tab" onclick="showPage('vitamix')">🍃 Vitamix Ideas</button>
+</div>
+
+<!-- NOON PLANNER -->
+<div class="page active" id="noon">
+  <div id="noon-main">
+    <div class="card">
+      <div class="card-label">Today's Dinner Plan</div>
+      <p style="font-size:0.88rem;color:var(--text-soft);margin-bottom:14px;">Only meals you can make with your current pantry are shown.</p>
+      <select id="meal-select" onchange="loadMeal()">
+        <option value="">— Choose tonight's dinner —</option>
+      </select>
+      <div id="no-meals-msg" style="display:none;font-size:0.85rem;color:var(--accent);margin-bottom:12px;">
+        No meals match your pantry right now. Go to <strong>My Pantry</strong> and check off what you have on hand, then come back here.
+      </div>
+      <button class="btn btn-green" onclick="suggestMeal()">✨ Suggest One For Me</button>
+    </div>
+
+    <div id="meal-detail" style="display:none;"></div>
+  </div>
+
+  <div id="noon-done" style="display:none;">
+    <div class="tonight-done">
+      <div class="big-emoji">✅</div>
+      <h2>Noon task done!</h2>
+      <p>Your 5pm self has a plan. Just walk in and cook — no decisions needed.</p>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="resetNoon()">Plan a different meal</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANTRY -->
+<div class="page" id="pantry">
+  <div class="card">
+    <div class="card-label">Your Fridge & Freezer</div>
+    <p style="margin-bottom:16px;">Check off what you currently have. This helps the planner suggest meals.</p>
+
+    <div class="pantry-grid" id="pantry-grid"></div>
+
+    <div class="divider"></div>
+    <div class="card-label">Add an Item</div>
+    <div class="custom-item-select">
+      <select id="new-category">
+        <option value="Proteins">Proteins</option>
+        <option value="Greens">Greens & Veg</option>
+        <option value="Pantry">Pantry Staples</option>
+        <option value="Grains">Grains & Noodles</option>
+      </select>
+    </div>
+    <div class="add-item-row">
+      <input type="text" id="new-item-input" placeholder="e.g. edamame, bok choy..." />
+      <button class="btn btn-green btn-sm" onclick="addPantryItem()">Add</button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-label">Save Your Pantry</div>
+    <p style="font-size:0.82rem;color:var(--text-soft);margin-bottom:12px;">Download your pantry list as a file. Load it next time you open the app to restore everything.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-green btn-sm" onclick="exportPantry()">⬇ Save Pantry File</button>
+      <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+        ⬆ Load Pantry File
+        <input type="file" accept=".json" style="display:none;" onchange="importPantry(event)">
+      </label>
+    </div>
+    <div id="import-msg" style="font-size:0.8rem;color:var(--green);margin-top:8px;display:none;"></div>
+  </div>
+</div>
+
+<!-- SATURDAY PREP -->
+<div class="page" id="saturday">
+  <div class="card">
+    <div class="card-label">Your Prep Day Strategy</div>
+    <p>An hour or two on Saturday sets up your whole week. Here's a smart plan:</p>
+  </div>
+
+  <div class="prep-block">
+    <h3>🥩 Proteins — 30 min</h3>
+    <div class="meta">Oven + stovetop</div>
+    <ul>
+      <li>Press & marinate 1 block tofu (soy, ginger, garlic)</li>
+      <li>Bake marinated tofu at 400°F for 25 min → store in fridge</li>
+      <li>Portion and freeze fish in dinner-sized bags</li>
+      <li>Move 1–2 portions to fridge to thaw for Mon/Tue</li>
+    </ul>
+  </div>
+
+  <div class="prep-block">
+    <h3>🥬 Greens — 15 min</h3>
+    <div class="meta">Wash, dry, store</div>
+    <ul>
+      <li>Wash all greens, spin dry, store in damp paper towel in container</li>
+      <li>Chop kale or chard into bite-sized pieces — ready to sauté</li>
+      <li>Prep a big salad base (no dressing) for easy grab</li>
+    </ul>
+  </div>
+
+  <div class="prep-block">
+    <h3>🍚 Grains & Base — 20 min</h3>
+    <div class="meta">Hands off cook time</div>
+    <ul>
+      <li>Cook a big pot of brown rice or farro</li>
+      <li>Portion into containers — 1 per weeknight</li>
+      <li>Boil soba or rice noodles, toss with sesame oil to prevent sticking</li>
+    </ul>
+  </div>
+
+  <div class="prep-block">
+    <h3>🫙 Sauces — 10 min</h3>
+    <div class="meta">Vitamix makes this fast</div>
+    <ul>
+      <li>Miso-ginger sauce (miso, ginger, rice vinegar, sesame oil, garlic)</li>
+      <li>Tahini-lemon dressing (tahini, lemon, garlic, water)</li>
+      <li>Store in mason jars — good all week</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top:4px;">
+    <div class="card-label">Saturday Checklist</div>
+    <div id="sat-checklist">
+      <label class="prep-check"><input type="checkbox"> <span>Thaw & marinate tofu</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Bake tofu (25 min @ 400°F)</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Portion & freeze fish</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Move 2 fish portions to fridge to thaw</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Wash & dry all greens</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Chop greens into bite-sized pieces</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Cook big pot of grains</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Portion grains into weeknight containers</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Blend miso-ginger sauce</span></label>
+      <label class="prep-check"><input type="checkbox"> <span>Blend tahini-lemon dressing</span></label>
+    </div>
+  </div>
+</div>
+
+<!-- VITAMIX -->
+<div class="page" id="vitamix">
+  <div class="card">
+    <div class="card-label">Your Vitamix Advantage</div>
+    <p>A high-powered blender changes what "fast" cooking means. Here's how to use it in your routine.</p>
+  </div>
+
+  <div class="vitamix-card">
+    <div class="v-label">Weeknight Soup — 15 min total</div>
+    <h3>Blended White Bean & Greens</h3>
+    <p>Sauté greens + garlic 5 min. Add white beans + broth. Blend hot in Vitamix → silky, protein-rich soup. Top with lemon + olive oil.</p>
+  </div>
+
+  <div class="vitamix-card">
+    <div class="v-label">Weeknight Sauce — 3 min</div>
+    <h3>Instant Miso-Ginger Sauce</h3>
+    <p>Blend: 2 tbsp miso, 1 tbsp ginger, 1 tbsp rice vinegar, 1 tsp sesame oil, 1 garlic clove, 3 tbsp water. Pour over anything. Done.</p>
+  </div>
+
+  <div class="vitamix-card">
+    <div class="v-label">Morning Boost — 5 min</div>
+    <h3>Green Power Smoothie</h3>
+    <p>Blend: handful of greens, frozen banana, plant milk, 1 tbsp nut butter, chia seeds. Vitamix makes it silky even with tough greens like kale.</p>
+  </div>
+
+  <div class="vitamix-card">
+    <div class="v-label">Saturday Batch — 10 min</div>
+    <h3>Tahini-Lemon Dressing (week supply)</h3>
+    <p>Blend: ½ cup tahini, juice of 2 lemons, 1 garlic clove, pinch cumin, ½ cup water. Stores 7 days. Dresses salads, grain bowls, roasted veg.</p>
+  </div>
+
+  <div class="vitamix-card">
+    <div class="v-label">Sneaky Nutrition — 5 min</div>
+    <h3>Blended Greens into Sauces</h3>
+    <p>Add a handful of spinach to any blended sauce — you won't taste it but you get the full nutrition. Works in the miso sauce, tahini dressing, or tomato-based sauces.</p>
+  </div>
+</div>
+
+<script>
+// pantryKeys: lowercase words that must appear in the checked pantry items for the meal to be available.
+// A meal is available if ALL of its pantryKeys match at least one checked pantry item.
+const meals = {
+  "miso-tofu": {
+    name: "Miso Glazed Tofu + Wilted Greens",
+    time: "18 min",
+    emoji: "🥢",
+    pantryKeys: ["tofu", "miso"],
+    ingredients: ["Tofu", "Miso paste", "Ginger", "Garlic", "Greens", "Sesame oil", "Rice (prepped)"],
+    noonTask: "Take tofu out of fridge. Mix 2 tbsp miso + 1 tsp ginger + 1 tsp sesame oil in a small cup. Pour over tofu slices. Cover and refrigerate. Done — takes 4 minutes.",
+    steps: [
+      "Heat non-stick pan on medium-high. Add sesame oil.",
+      "Add marinated tofu slices. Cook 3–4 min per side until golden.",
+      "Toss greens into the same pan with a splash of water. Wilt 2 min.",
+      "Plate tofu over prepped rice or on its own. Drizzle any pan sauce over top."
+    ]
+  },
+  "salmon-bowl": {
+    name: "Lemon Herb Salmon Bowl",
+    time: "20 min",
+    emoji: "🐟",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon fillet", "Lemon", "Garlic", "Olive oil", "Greens", "Prepped grains"],
+    noonTask: "Move one salmon portion from freezer to fridge to finish thawing. Squeeze half a lemon into a small bowl with 1 tsp olive oil and a pinch of garlic. Leave it covered on the counter — it'll be your marinade tonight.",
+    steps: [
+      "Pat salmon dry. Brush with lemon-herb marinade.",
+      "Heat oven to 400°F. Bake salmon on a sheet pan for 12–14 min.",
+      "While salmon bakes, warm prepped grains in microwave (90 sec).",
+      "Sauté greens in a pan with olive oil and garlic — 3 minutes.",
+      "Build bowl: grains → greens → salmon. Squeeze remaining lemon over top."
+    ]
+  },
+  "stir-fry": {
+    name: "Quick Tofu Veggie Stir-Fry",
+    time: "15 min",
+    emoji: "🥬",
+    pantryKeys: ["tofu", "soy sauce"],
+    ingredients: ["Baked tofu (prepped)", "Greens", "Soy sauce", "Garlic", "Sesame oil", "Prepped rice"],
+    noonTask: "Nothing to do — your baked tofu is already in the fridge from Saturday. Just confirm your greens are washed. Tonight will take 10 minutes flat.",
+    steps: [
+      "Heat wok or large pan very hot. Add sesame oil.",
+      "Add garlic, stir 30 seconds.",
+      "Add greens, stir-fry 2–3 min on high heat.",
+      "Add prepped tofu cubes. Splash of soy sauce. Toss 2 more minutes.",
+      "Serve over warmed rice. Done."
+    ]
+  },
+  "soup": {
+    name: "Blended White Bean & Greens Soup",
+    time: "15 min",
+    emoji: "🍲",
+    pantryKeys: ["white bean"],
+    ingredients: ["White beans (canned)", "Greens", "Garlic", "Vegetable broth", "Lemon", "Olive oil"],
+    noonTask: "Open a can of white beans and leave it on the counter. Make sure your Vitamix is clean and on the counter — you'll use it tonight for a silky blended soup. Takes 1 minute of noon prep.",
+    steps: [
+      "Sauté garlic in olive oil in a pot, 1 minute.",
+      "Add greens. Cook 3 minutes until wilted.",
+      "Add white beans + 2 cups broth. Simmer 5 minutes.",
+      "Carefully transfer to Vitamix. Blend until silky smooth (1 min).",
+      "Return to pot. Season with lemon, salt, pepper. Heat through and serve."
+    ]
+  },
+  "tilapia": {
+    name: "Garlic Pan Tilapia + Sautéed Spinach",
+    time: "16 min",
+    emoji: "🐠",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia fillet", "Garlic", "Lemon", "Olive oil", "Spinach", "Prepped grains"],
+    noonTask: "Move tilapia from freezer to fridge now. Season with salt, pepper, and a little garlic powder in a covered dish — it'll marinate while you're at work.",
+    steps: [
+      "Heat skillet over medium-high. Add olive oil.",
+      "Cook seasoned tilapia 3–4 min per side. Squeeze lemon over it.",
+      "Remove fish, add spinach + garlic to same pan. Wilt 2 minutes.",
+      "Warm prepped grains in microwave (90 sec).",
+      "Plate everything together. Done in under 15 min."
+    ]
+  },
+  "noodles": {
+    name: "Sesame Soba Noodles with Edamame",
+    time: "12 min",
+    emoji: "🍜",
+    pantryKeys: ["soba", "edamame"],
+    ingredients: ["Soba noodles", "Edamame (frozen)", "Sesame oil", "Soy sauce", "Ginger", "Greens", "Sesame seeds"],
+    noonTask: "Move edamame from freezer to fridge to partially thaw. Tonight will take 10 minutes — the fastest meal in your rotation.",
+    steps: [
+      "Boil water. Cook soba noodles 4–5 min. Drain and rinse cold.",
+      "Microwave edamame 2 min from partially thawed.",
+      "Toss noodles with sesame oil, soy sauce, ginger, and a splash of rice vinegar.",
+      "Add edamame and any greens. Toss together.",
+      "Top with sesame seeds. Serve warm or room temp — both are great."
+    ]
+  }
+};
+
+function getCheckedPantryItems() {
+  // Returns an array of lowercase checked pantry item names
+  return Object.entries(checkedState)
+    .filter(([, checked]) => checked)
+    .map(([id]) => {
+      const sep = id.lastIndexOf('||');
+      if (sep === -1) return '';
+      const cat = id.slice(0, sep);
+      const idx = parseInt(id.slice(sep + 2));
+      return (pantryState[cat]?.[idx] || '').toLowerCase();
+    })
+    .filter(Boolean);
+}
+
+function getAvailableMeals() {
+  const checkedItems = getCheckedPantryItems();
+  // If nothing is checked, show all meals (first-time user experience)
+  if (checkedItems.length === 0) return Object.keys(meals);
+  return Object.keys(meals).filter(key => {
+    return meals[key].pantryKeys.every(keyword =>
+      checkedItems.some(item => item.includes(keyword.toLowerCase()))
+    );
+  });
+}
+
+function rebuildMealDropdown() {
+  const select = document.getElementById('meal-select');
+  const noMsg = document.getElementById('no-meals-msg');
+  const available = getAvailableMeals();
+  // Clear existing options except the placeholder
+  select.innerHTML = '<option value="">— Choose tonight\'s dinner —</option>';
+  available.forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = `${meals[key].emoji} ${meals[key].name}`;
+    select.appendChild(opt);
+  });
+  if (available.length === 0) {
+    select.style.display = 'none';
+    noMsg.style.display = 'block';
+  } else {
+    select.style.display = 'block';
+    noMsg.style.display = 'none';
+  }
+}
+
+function suggestMeal() {
+  const available = getAvailableMeals();
+  if (available.length === 0) return;
+  const rand = available[Math.floor(Math.random() * available.length)];
+  document.getElementById('meal-select').value = rand;
+  loadMeal();
+}
+
+function loadMeal() {
+  const key = document.getElementById('meal-select').value;
+  if (!key) { document.getElementById('meal-detail').style.display = 'none'; return; }
+  const m = meals[key];
+
+  document.getElementById('meal-detail').innerHTML = `
+    <div class="suggestion-hero">
+      <div class="label">Tonight's Dinner ${m.emoji}</div>
+      <h2>${m.name}</h2>
+      <span class="time-badge">⏱ ${m.time} to cook tonight</span>
+    </div>
+
+    <div class="prep-task">
+      <div class="label">⚡ Your noon task (5 min now)</div>
+      <p>${m.noonTask}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">You'll need</div>
+      <div class="ingredient-tags">
+        ${m.ingredients.map(i => `<span class="tag">${i}</span>`).join('')}
+      </div>
+      <div class="divider"></div>
+      <div class="card-label">Tonight's steps</div>
+      <div class="recipe-steps">
+        ${m.steps.map((s,i) => `<div class="step"><div class="step-num">${i+1}</div><div>${s}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <button class="btn btn-accent done-btn" onclick="markNoonDone()">✅ Noon task done — see you at 5pm!</button>
+  `;
+  document.getElementById('meal-detail').style.display = 'block';
+}
+
+function markNoonDone() {
+  document.getElementById('noon-main').style.display = 'none';
+  document.getElementById('noon-done').style.display = 'block';
+}
+
+function resetNoon() {
+  document.getElementById('meal-select').value = '';
+  document.getElementById('meal-detail').style.display = 'none';
+  document.getElementById('noon-main').style.display = 'block';
+  document.getElementById('noon-done').style.display = 'none';
+}
+
+// Pantry
+const defaultPantry = {
+  "Proteins": ["Salmon", "Tilapia", "Tofu", "Edamame", "White beans"],
+  "Greens & Veg": ["Spinach", "Kale", "Chard", "Broccoli", "Zucchini"],
+  "Pantry Staples": ["Miso paste", "Soy sauce", "Sesame oil", "Olive oil", "Garlic", "Lemon"],
+  "Grains & Noodles": ["Brown rice", "Soba noodles", "Farro", "Rice noodles"]
+};
+
+let pantryState = JSON.parse(JSON.stringify(defaultPantry));
+let checkedState = {};
+
+function savePantry() {
+  // no-op: data only persists via export/import file
+}
+
+function exportPantry() {
+  const data = JSON.stringify({ pantry: pantryState, checked: checkedState }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'my-pantry.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importPantry(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.pantry) {
+        pantryState = data.pantry;
+        checkedState = data.checked || {};
+        renderPantry();
+        rebuildMealDropdown();
+        const msg = document.getElementById('import-msg');
+        msg.textContent = '✅ Pantry loaded successfully!';
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+      } else {
+        alert('That file doesn\'t look like a pantry file. Please use a file saved from this app.');
+      }
+    } catch {
+      alert('Could not read that file. Make sure it\'s the pantry .json file from this app.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // reset so same file can be re-loaded
+}
+
+function renderPantry() {
+  const grid = document.getElementById('pantry-grid');
+  grid.innerHTML = '';
+  Object.entries(pantryState).forEach(([cat, items]) => {
+    const div = document.createElement('div');
+    div.className = 'pantry-category';
+    div.innerHTML = `<h3>${cat}</h3>` + items.map((item, i) => {
+      const id = `${cat}||${i}`;
+      const checked = checkedState[id] ? 'checked' : '';
+      const cls = checkedState[id] ? 'checked' : '';
+      return `<div class="pantry-item">
+        <input type="checkbox" id="${id}" ${checked} onchange="togglePantry('${id}', this.checked)">
+        <label for="${id}" class="${cls}">${item}</label>
+      </div>`;
+    }).join('');
+    grid.appendChild(div);
+  });
+}
+
+function togglePantry(id, checked) {
+  checkedState[id] = checked;
+  const label = document.querySelector(`label[for="${id}"]`);
+  if (label) label.className = checked ? 'checked' : '';
+  savePantry();
+  rebuildMealDropdown();
+}
+
+function addPantryItem() {
+  const input = document.getElementById('new-item-input');
+  const cat = document.getElementById('new-category').value;
+  const val = input.value.trim();
+  if (!val) return;
+  if (!pantryState[cat]) pantryState[cat] = [];
+  pantryState[cat].push(val);
+  input.value = '';
+  savePantry();
+  renderPantry();
+  rebuildMealDropdown();
+}
+
+document.getElementById('new-item-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addPantryItem();
+});
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+renderPantry();
+rebuildMealDropdown();
+</script>
+</body>
+</html>
