@@ -489,6 +489,17 @@
 
 <!-- PANTRY -->
 <div class="page" id="pantry">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-label" style="color:var(--green);">🏠 Always Have</div>
+    <p style="font-size:0.82rem;color:var(--text-soft);margin-bottom:14px;">These staples are always counted toward meal matching. Add or remove items, then save your pantry file to keep changes.</p>
+    <input type="text" id="staples-search" placeholder="Search staples..." oninput="filterStaples()" style="width:100%;padding:9px 12px;border:1.5px solid var(--green-pale);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;color:var(--text);background:var(--cream);margin-bottom:8px;">
+    <div id="staples-grid" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+    <div class="add-item-row">
+      <input type="text" id="staple-add-input" placeholder="Add a staple..." onkeydown="if(event.key==='Enter')addStaple()" style="flex:1;padding:9px 12px;border:1.5px solid var(--green-pale);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;color:var(--text);background:var(--cream);">
+      <button class="btn btn-green btn-sm" onclick="addStaple()">Add</button>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-label">Your Fridge & Freezer</div>
     <p style="margin-bottom:16px;">Check off what you currently have. This helps the planner suggest meals.</p>
@@ -500,9 +511,9 @@
     <div class="custom-item-select">
       <select id="new-category">
         <option value="Proteins">Proteins</option>
-        <option value="Greens">Greens & Veg</option>
-        <option value="Pantry">Pantry Staples</option>
-        <option value="Grains">Grains & Noodles</option>
+        <option value="Greens & Veg">Greens & Veg</option>
+        <option value="Pantry Staples">Pantry Staples</option>
+        <option value="Grains & Noodles">Grains & Noodles</option>
       </select>
     </div>
     <div class="add-item-row">
@@ -628,103 +639,759 @@
 </div>
 
 <script>
-// pantryKeys: lowercase words that must appear in the checked pantry items for the meal to be available.
-// A meal is available if ALL of its pantryKeys match at least one checked pantry item.
+// pantryKeys: lowercase words that must appear in checked pantry items for the meal to show.
+// A meal appears only if ALL pantryKeys match at least one checked item (staples always count).
 const meals = {
   "miso-tofu": {
-    name: "Miso Glazed Tofu + Wilted Greens",
-    time: "18 min",
-    emoji: "🥢",
-    pantryKeys: ["tofu", "miso"],
-    ingredients: ["Tofu", "Miso paste", "Ginger", "Garlic", "Greens", "Sesame oil", "Rice (prepped)"],
-    noonTask: "Take tofu out of fridge. Mix 2 tbsp miso + 1 tsp ginger + 1 tsp sesame oil in a small cup. Pour over tofu slices. Cover and refrigerate. Done — takes 4 minutes.",
-    steps: [
-      "Heat non-stick pan on medium-high. Add sesame oil.",
-      "Add marinated tofu slices. Cook 3–4 min per side until golden.",
-      "Toss greens into the same pan with a splash of water. Wilt 2 min.",
-      "Plate tofu over prepped rice or on its own. Drizzle any pan sauce over top."
-    ]
+    name: "Miso Glazed Tofu + Wilted Greens", time: "18 min", emoji: "🥢",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Miso paste", "Ginger", "Garlic", "Greens", "Sesame oil", "Rice"],
+    noonTask: "Mix 2 tbsp miso + 1 tsp ginger + 1 tsp sesame oil. Pour over sliced tofu. Cover and refrigerate.",
+    steps: ["Heat pan on medium-high. Add sesame oil.", "Cook tofu 3–4 min per side until golden.", "Toss greens into same pan with a splash of water. Wilt 2 min.", "Plate over rice. Drizzle pan sauce on top."]
   },
   "salmon-bowl": {
-    name: "Lemon Herb Salmon Bowl",
-    time: "20 min",
-    emoji: "🐟",
+    name: "Lemon Herb Salmon Bowl", time: "20 min", emoji: "🐟",
     pantryKeys: ["salmon"],
-    ingredients: ["Salmon fillet", "Lemon", "Garlic", "Olive oil", "Greens", "Prepped grains"],
-    noonTask: "Move one salmon portion from freezer to fridge to finish thawing. Squeeze half a lemon into a small bowl with 1 tsp olive oil and a pinch of garlic. Leave it covered on the counter — it'll be your marinade tonight.",
-    steps: [
-      "Pat salmon dry. Brush with lemon-herb marinade.",
-      "Heat oven to 400°F. Bake salmon on a sheet pan for 12–14 min.",
-      "While salmon bakes, warm prepped grains in microwave (90 sec).",
-      "Sauté greens in a pan with olive oil and garlic — 3 minutes.",
-      "Build bowl: grains → greens → salmon. Squeeze remaining lemon over top."
-    ]
+    ingredients: ["Salmon fillet", "Lemon", "Garlic", "Olive oil", "Greens", "Grains"],
+    noonTask: "Move salmon from freezer to fridge. Mix lemon juice + olive oil + garlic as marinade and pour over salmon.",
+    steps: ["Pat salmon dry. Brush with marinade.", "Bake at 400°F for 12–14 min.", "Warm grains in microwave 90 sec.", "Sauté greens with olive oil and garlic 3 min.", "Build bowl: grains → greens → salmon. Squeeze lemon on top."]
   },
-  "stir-fry": {
-    name: "Quick Tofu Veggie Stir-Fry",
-    time: "15 min",
-    emoji: "🥬",
-    pantryKeys: ["tofu", "soy sauce"],
-    ingredients: ["Baked tofu (prepped)", "Greens", "Soy sauce", "Garlic", "Sesame oil", "Prepped rice"],
-    noonTask: "Nothing to do — your baked tofu is already in the fridge from Saturday. Just confirm your greens are washed. Tonight will take 10 minutes flat.",
-    steps: [
-      "Heat wok or large pan very hot. Add sesame oil.",
-      "Add garlic, stir 30 seconds.",
-      "Add greens, stir-fry 2–3 min on high heat.",
-      "Add prepped tofu cubes. Splash of soy sauce. Toss 2 more minutes.",
-      "Serve over warmed rice. Done."
-    ]
+  "tofu-stir-fry": {
+    name: "Quick Tofu Veggie Stir-Fry", time: "15 min", emoji: "🥬",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Greens", "Soy sauce", "Garlic", "Sesame oil", "Rice"],
+    noonTask: "Cube tofu and leave it on a paper towel to dry out — drier tofu gets crispier tonight.",
+    steps: ["Heat wok very hot. Add sesame oil.", "Add garlic, stir 30 sec.", "Add greens, stir-fry 2–3 min.", "Add tofu. Splash soy sauce. Toss 2 more min.", "Serve over rice."]
   },
-  "soup": {
-    name: "Blended White Bean & Greens Soup",
-    time: "15 min",
-    emoji: "🍲",
-    pantryKeys: ["white bean"],
-    ingredients: ["White beans (canned)", "Greens", "Garlic", "Vegetable broth", "Lemon", "Olive oil"],
-    noonTask: "Open a can of white beans and leave it on the counter. Make sure your Vitamix is clean and on the counter — you'll use it tonight for a silky blended soup. Takes 1 minute of noon prep.",
-    steps: [
-      "Sauté garlic in olive oil in a pot, 1 minute.",
-      "Add greens. Cook 3 minutes until wilted.",
-      "Add white beans + 2 cups broth. Simmer 5 minutes.",
-      "Carefully transfer to Vitamix. Blend until silky smooth (1 min).",
-      "Return to pot. Season with lemon, salt, pepper. Heat through and serve."
-    ]
+  "white-bean-soup": {
+    name: "Blended White Bean & Greens Soup", time: "15 min", emoji: "🍲",
+    pantryKeys: ["black beans"],
+    ingredients: ["Black beans", "Greens", "Garlic", "Broth", "Olive oil"],
+    noonTask: "Set out a can of black beans. Make sure Vitamix is on the counter — you'll blend tonight.",
+    steps: ["Sauté garlic in olive oil 1 min.", "Add greens. Cook 3 min until wilted.", "Add beans + 2 cups broth. Simmer 5 min.", "Blend in Vitamix until silky.", "Return to pot. Season with salt, pepper. Heat and serve."]
   },
-  "tilapia": {
-    name: "Garlic Pan Tilapia + Sautéed Spinach",
-    time: "16 min",
-    emoji: "🐠",
+  "tilapia-spinach": {
+    name: "Garlic Pan Tilapia + Sautéed Spinach", time: "16 min", emoji: "🐠",
     pantryKeys: ["tilapia"],
-    ingredients: ["Tilapia fillet", "Garlic", "Lemon", "Olive oil", "Spinach", "Prepped grains"],
-    noonTask: "Move tilapia from freezer to fridge now. Season with salt, pepper, and a little garlic powder in a covered dish — it'll marinate while you're at work.",
-    steps: [
-      "Heat skillet over medium-high. Add olive oil.",
-      "Cook seasoned tilapia 3–4 min per side. Squeeze lemon over it.",
-      "Remove fish, add spinach + garlic to same pan. Wilt 2 minutes.",
-      "Warm prepped grains in microwave (90 sec).",
-      "Plate everything together. Done in under 15 min."
-    ]
+    ingredients: ["Tilapia", "Garlic", "Olive oil", "Spinach", "Grains"],
+    noonTask: "Move tilapia to fridge. Season with salt, pepper, garlic powder in a covered dish.",
+    steps: ["Heat skillet medium-high. Add olive oil.", "Cook tilapia 3–4 min per side.", "Remove fish. Add spinach + garlic to same pan. Wilt 2 min.", "Warm grains 90 sec.", "Plate and serve."]
   },
-  "noodles": {
-    name: "Sesame Soba Noodles with Edamame",
-    time: "12 min",
-    emoji: "🍜",
+  "soba-edamame": {
+    name: "Sesame Soba Noodles with Edamame", time: "12 min", emoji: "🍜",
     pantryKeys: ["soba", "edamame"],
-    ingredients: ["Soba noodles", "Edamame (frozen)", "Sesame oil", "Soy sauce", "Ginger", "Greens", "Sesame seeds"],
-    noonTask: "Move edamame from freezer to fridge to partially thaw. Tonight will take 10 minutes — the fastest meal in your rotation.",
-    steps: [
-      "Boil water. Cook soba noodles 4–5 min. Drain and rinse cold.",
-      "Microwave edamame 2 min from partially thawed.",
-      "Toss noodles with sesame oil, soy sauce, ginger, and a splash of rice vinegar.",
-      "Add edamame and any greens. Toss together.",
-      "Top with sesame seeds. Serve warm or room temp — both are great."
-    ]
+    ingredients: ["Soba noodles", "Edamame", "Sesame oil", "Soy sauce", "Ginger", "Greens"],
+    noonTask: "Move edamame from freezer to fridge to partially thaw.",
+    steps: ["Boil soba 4–5 min. Drain and rinse cold.", "Microwave edamame 2 min.", "Toss noodles with sesame oil, soy sauce, ginger, rice vinegar.", "Add edamame and greens. Toss.", "Top with sesame seeds."]
+  },
+  "chicken-teriyaki-bowl": {
+    name: "Chicken Teriyaki Bowl", time: "20 min", emoji: "🍗",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Teriyaki sauce", "Rice", "Greens", "Sesame seeds"],
+    noonTask: "Slice chicken into strips. Pour teriyaki sauce over it. Cover and refrigerate to marinate all day.",
+    steps: ["Heat pan medium-high with a little oil.", "Cook marinated chicken strips 4–5 min per side.", "Warm rice in microwave 90 sec.", "Plate rice, top with chicken and any pan sauce.", "Add greens and sesame seeds on top."]
+  },
+  "chicken-tikka-masala": {
+    name: "Chicken Tikka Masala", time: "20 min", emoji: "🫕",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Tikka masala sauce", "Coconut milk", "Rice", "Onion"],
+    noonTask: "Cube chicken. Coat with a spoonful of tikka masala sauce. Refrigerate.",
+    steps: ["Sauté diced onion in oil 3 min.", "Add chicken. Cook until browned, 5–6 min.", "Pour in tikka masala sauce + splash of coconut milk.", "Simmer 8 min.", "Serve over rice."]
+  },
+  "chicken-butter": {
+    name: "Butter Chicken", time: "20 min", emoji: "🧈",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Butter chicken sauce", "Coconut milk", "Rice", "Garlic", "Ginger"],
+    noonTask: "Cube chicken and place in a bowl. Spoon 2 tbsp butter chicken sauce over it. Cover and refrigerate.",
+    steps: ["Cook chicken in ghee or butter over medium heat 5–6 min.", "Add butter chicken sauce + splash of coconut milk.", "Simmer 8–10 min, stirring occasionally.", "Serve over rice. Top with a drizzle of cream if you have it."]
+  },
+  "chicken-pad-thai": {
+    name: "Chicken Pad Thai", time: "18 min", emoji: "🥡",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Pad Thai sauce", "Rice noodles", "Eggs", "Green onion", "Lime"],
+    noonTask: "Slice chicken thin. Soak rice noodles in cold water in a bowl — they'll be ready by tonight.",
+    steps: ["Cook chicken in hot oiled pan 4–5 min. Set aside.", "Drain noodles. Add to same pan with pad Thai sauce. Toss 2 min.", "Push noodles to side. Scramble 2 eggs in pan.", "Mix everything together. Add chicken back.", "Top with lime juice and sesame seeds."]
+  },
+  "chicken-curry": {
+    name: "Quick Chicken Curry", time: "22 min", emoji: "🍛",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Coconut milk", "Curry powder", "Onion", "Tomato paste", "Rice", "Garlic", "Ginger"],
+    noonTask: "Cube chicken. Mix 1 tsp curry powder + pinch of salt. Toss to coat. Refrigerate.",
+    steps: ["Sauté onion + garlic + ginger 3 min.", "Add chicken. Brown 4–5 min.", "Add tomato paste + curry powder. Stir 1 min.", "Pour in coconut milk. Simmer 10 min.", "Serve over rice."]
+  },
+  "chicken-garam-masala": {
+    name: "Garam Masala Chicken + Potatoes", time: "25 min", emoji: "🥔",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Potatoes", "Garam masala", "Onion", "Tomato sauce", "Garlic", "Ginger"],
+    noonTask: "Cube chicken and potatoes. Toss with garam masala and a little oil. Refrigerate.",
+    steps: ["Heat oil in a large pan. Sauté onion 3 min.", "Add chicken and potatoes. Cook 8 min, stirring.", "Add garlic, ginger, tomato sauce. Stir well.", "Cover and simmer 10 min until potatoes are tender.", "Serve as-is or with rice."]
+  },
+  "chicken-buffalo": {
+    name: "Buffalo Chicken Lettuce Wraps", time: "15 min", emoji: "🌶️",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Buffalo sauce", "Romaine", "Carrots", "Greek yogurt"],
+    noonTask: "Shred or slice chicken if already cooked. Toss with buffalo sauce. Refrigerate.",
+    steps: ["If chicken is raw: cook in pan 5–6 min per side, then shred.", "Toss shredded chicken with buffalo sauce.", "Mix Greek yogurt with a pinch of salt as a cool dressing.", "Fill romaine leaves with chicken + shredded carrot.", "Drizzle yogurt dressing on top."]
+  },
+  "chicken-bbq-bowl": {
+    name: "BBQ Chicken Rice Bowl", time: "18 min", emoji: "🍖",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Barbecue sauce", "Rice", "Red peppers", "Onion"],
+    noonTask: "Coat chicken in barbecue sauce. Cover and refrigerate to marinate all day.",
+    steps: ["Cook chicken in a pan over medium heat 5–6 min per side.", "Brush with extra BBQ sauce in last 2 min.", "Sauté red pepper and onion in same pan 3 min.", "Warm rice 90 sec.", "Build bowl: rice → veg → chicken. Drizzle with extra sauce."]
+  },
+  "chicken-honey-sesame": {
+    name: "Honey Sesame Chicken", time: "18 min", emoji: "🍯",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Honey sesame sauce", "Rice", "Green peppers", "Sesame seeds"],
+    noonTask: "Cube chicken. Pour honey sesame sauce over it. Refrigerate.",
+    steps: ["Cook chicken in hot pan with oil until golden, 5–6 min.", "Add extra honey sesame sauce. Toss to coat.", "Sauté green peppers in same pan 2 min.", "Serve over rice. Top with sesame seeds."]
+  },
+  "chicken-coconut-soup": {
+    name: "Thai Coconut Chicken Soup", time: "20 min", emoji: "🥥",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Coconut milk", "Lemongrass paste", "Ginger", "Fish sauce", "Lime", "Mushrooms"],
+    noonTask: "Slice chicken thin. Refrigerate.",
+    steps: ["Bring coconut milk + 1 cup water to a simmer.", "Add lemongrass paste, ginger, fish sauce.", "Add chicken. Simmer 8 min.", "Add mushrooms. Cook 3 more min.", "Finish with lime juice. Serve as soup or over rice."]
+  },
+  "chicken-adobo": {
+    name: "Filipino-Style Chicken Adobo", time: "25 min", emoji: "🥘",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Soy sauce", "Balsamic vinegar", "Garlic", "Black pepper", "Bay leaf", "Rice"],
+    noonTask: "Place chicken in a bowl with soy sauce, balsamic vinegar, garlic, and pepper. Refrigerate to marinate.",
+    steps: ["Place marinated chicken in a pan. Bring to a boil.", "Reduce heat. Simmer covered 15 min.", "Uncover. Cook until sauce thickens and chicken browns, 5 more min.", "Serve over rice with plenty of sauce."]
+  },
+  "chicken-ponzu": {
+    name: "Ponzu Glazed Chicken + Kale", time: "18 min", emoji: "🍋",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Ponzu sauce", "Kale", "Sesame oil", "Rice", "Sesame seeds"],
+    noonTask: "Coat chicken in ponzu sauce. Cover and refrigerate.",
+    steps: ["Cook chicken in sesame oil 5–6 min per side.", "Brush extra ponzu in last 2 min.", "In same pan, wilt kale with a splash of water 3 min.", "Serve chicken over rice with kale on the side. Top with sesame seeds."]
+  },
+  "chicken-falafel-wrap": {
+    name: "Chicken Falafel Spice Wrap", time: "20 min", emoji: "🌯",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Falafel spice", "Hummus", "Romaine", "Tomato", "Red onion", "Pita or flatbread"],
+    noonTask: "Toss chicken with falafel spice and olive oil. Refrigerate.",
+    steps: ["Cook spiced chicken in pan 5–6 min per side.", "Slice into strips.", "Spread hummus on flatbread.", "Add romaine, tomato, onion, chicken strips.", "Wrap and eat."]
+  },
+  "salmon-miso": {
+    name: "Miso Glazed Salmon", time: "18 min", emoji: "🐟",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Miso paste", "Honey", "Soy sauce", "Ginger", "Rice", "Greens"],
+    noonTask: "Mix 2 tbsp miso + 1 tsp honey + 1 tsp soy sauce. Spread over salmon. Refrigerate.",
+    steps: ["Heat oven to 400°F.", "Place salmon on foil-lined pan. Bake 12–14 min.", "Broil last 2 min for caramelized glaze.", "Warm rice. Sauté greens quickly.", "Plate together."]
+  },
+  "salmon-teriyaki": {
+    name: "Teriyaki Salmon Bowl", time: "18 min", emoji: "🎣",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Teriyaki sauce", "Rice", "Edamame", "Sesame seeds"],
+    noonTask: "Pour teriyaki sauce over salmon. Cover and refrigerate.",
+    steps: ["Bake salmon at 400°F for 12–14 min.", "Warm rice. Microwave edamame 2 min.", "Flake salmon into chunks over rice.", "Top with edamame, sesame seeds, and a drizzle of extra teriyaki."]
+  },
+  "salmon-ponzu": {
+    name: "Ponzu Salmon + Greens", time: "16 min", emoji: "🫧",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Ponzu sauce", "Greens", "Sesame oil", "Rice"],
+    noonTask: "Drizzle ponzu over salmon. Refrigerate.",
+    steps: ["Pan-sear salmon in sesame oil 4 min per side.", "Remove salmon. Add greens to pan. Wilt 2 min.", "Warm rice.", "Plate rice, greens, then salmon. Drizzle extra ponzu."]
+  },
+  "salmon-coconut": {
+    name: "Coconut Curry Salmon", time: "20 min", emoji: "🌴",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Coconut milk", "Curry powder", "Garlic", "Ginger", "Tomato paste", "Rice"],
+    noonTask: "Move salmon from freezer to fridge.",
+    steps: ["Sauté garlic + ginger 1 min.", "Add curry powder + tomato paste. Stir 30 sec.", "Pour in coconut milk. Simmer 3 min.", "Add salmon. Poach in sauce 8–10 min.", "Serve over rice."]
+  },
+  "salmon-mustard": {
+    name: "Whole Grain Mustard Salmon", time: "18 min", emoji: "🟡",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Whole grain mustard", "Honey", "Olive oil", "Greens", "Potatoes"],
+    noonTask: "Mix mustard + honey + olive oil. Spread over salmon. Refrigerate.",
+    steps: ["Bake salmon at 400°F for 14 min.", "Meanwhile, microwave cubed potatoes 5 min.", "Toss potatoes in olive oil + salt. Broil 3 min.", "Sauté greens quickly.", "Plate everything together."]
+  },
+  "tilapia-coconut": {
+    name: "Coconut Lime Tilapia", time: "18 min", emoji: "🌊",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia", "Coconut milk", "Lime", "Garlic", "Ginger", "Rice"],
+    noonTask: "Move tilapia to fridge. Season with salt, lime zest, garlic.",
+    steps: ["Heat pan. Cook tilapia 3–4 min per side.", "Remove fish. Add coconut milk + ginger to pan. Simmer 3 min.", "Return tilapia to sauce. Warm through.", "Serve over rice with a squeeze of lime."]
+  },
+  "tilapia-ponzu": {
+    name: "Ponzu Tilapia + Bok Choy", time: "16 min", emoji: "🥬",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia", "Ponzu sauce", "Bok choy", "Sesame oil", "Rice", "Ginger"],
+    noonTask: "Marinate tilapia in ponzu sauce. Refrigerate.",
+    steps: ["Sear tilapia in sesame oil 3–4 min per side.", "Remove. Add bok choy + ginger to pan. Stir-fry 3 min.", "Warm rice.", "Plate rice → bok choy → tilapia. Drizzle extra ponzu."]
+  },
+  "tilapia-salsa": {
+    name: "Salsa Tilapia Tacos", time: "15 min", emoji: "🌮",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia", "Salsa", "Tortillas", "Romaine", "Greek yogurt", "Lime"],
+    noonTask: "Season tilapia with cumin, salt, lime juice. Refrigerate.",
+    steps: ["Cook tilapia in pan 3–4 min per side. Break into chunks.", "Warm tortillas 30 sec in pan.", "Layer: romaine → tilapia → salsa → dollop of Greek yogurt.", "Squeeze lime over top. Eat immediately."]
+  },
+  "tilapia-achiote": {
+    name: "Achiote Tilapia Rice Bowl", time: "18 min", emoji: "🫑",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia", "Achiote paste", "Lime", "Rice", "Black beans", "Salsa"],
+    noonTask: "Rub tilapia with achiote paste and lime juice. Refrigerate.",
+    steps: ["Cook tilapia in oiled pan 3–4 min per side.", "Warm rice and black beans.", "Build bowl: rice → beans → tilapia chunks.", "Top with salsa and a squeeze of lime."]
+  },
+  "tofu-tikka": {
+    name: "Tofu Tikka Masala", time: "20 min", emoji: "🫕",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Tikka masala sauce", "Coconut milk", "Rice", "Onion"],
+    noonTask: "Press tofu dry. Cube it. Leave uncovered in fridge to dry out further.",
+    steps: ["Pan-fry tofu cubes in oil until golden on all sides, 6–8 min.", "Add onion. Cook 2 min.", "Pour in tikka masala sauce + splash of coconut milk.", "Simmer 8 min.", "Serve over rice."]
+  },
+  "tofu-butter": {
+    name: "Butter Tofu", time: "18 min", emoji: "🧈",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Butter chicken sauce", "Coconut milk", "Ghee", "Rice", "Ginger"],
+    noonTask: "Press and cube tofu. Refrigerate uncovered.",
+    steps: ["Fry tofu in ghee until golden, 6 min.", "Add butter chicken sauce + coconut milk.", "Simmer 8 min.", "Serve over rice."]
+  },
+  "tofu-adobo": {
+    name: "Tofu Adobo", time: "22 min", emoji: "🥘",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Soy sauce", "Balsamic vinegar", "Garlic", "Black pepper", "Rice"],
+    noonTask: "Cube tofu. Mix soy sauce + balsamic + garlic + pepper. Pour over tofu. Refrigerate.",
+    steps: ["Place tofu + marinade in pan. Bring to boil.", "Reduce heat. Simmer 12 min.", "Uncover. Cook until sauce thickens, 5 more min.", "Serve over rice with plenty of sauce."]
+  },
+  "tofu-coconut-curry": {
+    name: "Tofu Coconut Green Curry", time: "20 min", emoji: "🟢",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Coconut milk", "Curry powder", "Greens", "Garlic", "Ginger", "Rice"],
+    noonTask: "Cube and press tofu. Refrigerate.",
+    steps: ["Fry tofu until golden. Set aside.", "Sauté garlic + ginger + curry powder 1 min.", "Add coconut milk. Simmer 5 min.", "Add greens + tofu. Cook 3 more min.", "Serve over rice."]
+  },
+  "tofu-teriyaki": {
+    name: "Teriyaki Tofu Bowl", time: "18 min", emoji: "🍱",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Teriyaki sauce", "Rice", "Carrots", "Sesame seeds", "Kale"],
+    noonTask: "Cube tofu. Pour teriyaki sauce over it. Refrigerate.",
+    steps: ["Pan-fry tofu in oil until golden, 6–8 min.", "Add extra teriyaki. Toss to coat.", "Steam or sauté kale and shredded carrot 3 min.", "Serve over rice. Top with sesame seeds."]
+  },
+  "tofu-bbq": {
+    name: "BBQ Tofu Rice Bowl", time: "20 min", emoji: "🔥",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Barbecue sauce", "Rice", "Red peppers", "Onion"],
+    noonTask: "Slice tofu thick. Coat with BBQ sauce. Refrigerate.",
+    steps: ["Grill or pan-fry tofu slabs 4 min per side.", "Brush extra BBQ sauce on in last minute.", "Sauté pepper + onion 3 min.", "Serve over rice with veggies."]
+  },
+  "tofu-pad-thai": {
+    name: "Tofu Pad Thai", time: "20 min", emoji: "🍝",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Pad Thai sauce", "Rice noodles", "Eggs", "Carrots", "Green onion"],
+    noonTask: "Soak rice noodles in cold water in a bowl. Cube tofu.",
+    steps: ["Fry tofu until golden. Set aside.", "Drain noodles. Stir-fry in hot pan with pad Thai sauce 2 min.", "Push to side. Scramble 2 eggs.", "Mix everything. Add tofu back.", "Top with shredded carrot and lime juice."]
+  },
+  "tofu-falafel": {
+    name: "Tofu Falafel Bowl", time: "20 min", emoji: "🧆",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Falafel spice", "Hummus", "Romaine", "Tomato", "Lemon"],
+    noonTask: "Crumble tofu. Toss with falafel spice + olive oil. Refrigerate.",
+    steps: ["Pan-fry spiced tofu crumbles until crispy, 8 min.", "Spread hummus in a bowl.", "Top with romaine, tomato, tofu.", "Squeeze lemon over everything."]
+  },
+  "egg-fried-rice": {
+    name: "Egg Fried Rice", time: "12 min", emoji: "🍳",
+    pantryKeys: ["eggs"],
+    ingredients: ["Eggs", "Rice (prepped)", "Soy sauce", "Sesame oil", "Garlic", "Green onion", "Carrots"],
+    noonTask: "Nothing — this one is fastest when everything is already prepped. Just make sure rice is in the fridge.",
+    steps: ["Heat wok very hot. Add sesame oil.", "Add garlic + shredded carrot. Stir 1 min.", "Add cold rice. Stir-fry 3 min.", "Push to side. Scramble 2–3 eggs.", "Mix everything. Add soy sauce. Top with green onion."]
+  },
+  "shakshuka": {
+    name: "Shakshuka (Eggs in Tomato Sauce)", time: "18 min", emoji: "🍅",
+    pantryKeys: ["eggs"],
+    ingredients: ["Eggs", "Tomato sauce", "Diced tomatoes", "Onion", "Red peppers", "Cumin", "Garlic"],
+    noonTask: "Nothing to prep — this comes together fast from pantry staples.",
+    steps: ["Sauté onion + pepper + garlic 3 min.", "Add diced tomatoes + tomato sauce + cumin. Simmer 5 min.", "Make wells in sauce. Crack eggs into wells.", "Cover. Cook 5–7 min until whites are set.", "Serve straight from pan with bread."]
+  },
+  "egg-curry": {
+    name: "Egg Curry", time: "18 min", emoji: "🥚",
+    pantryKeys: ["eggs"],
+    ingredients: ["Eggs", "Tomato sauce", "Coconut milk", "Curry powder", "Onion", "Garlic", "Rice"],
+    noonTask: "Hard boil 4 eggs. Peel and refrigerate.",
+    steps: ["Sauté onion + garlic + curry 3 min.", "Add tomato sauce + coconut milk. Simmer 5 min.", "Halve hard-boiled eggs. Add to sauce.", "Simmer 5 more min.", "Serve over rice."]
+  },
+  "potato-curry": {
+    name: "Potato & Black Bean Curry", time: "25 min", emoji: "🥔",
+    pantryKeys: ["potatoes"],
+    ingredients: ["Potatoes", "Black beans", "Coconut milk", "Curry powder", "Tomato paste", "Onion", "Garlic"],
+    noonTask: "Cube potatoes. Leave in a bowl of cold water so they don't brown.",
+    steps: ["Sauté onion + garlic + curry + tomato paste 2 min.", "Add potatoes. Cook 5 min.", "Add coconut milk + black beans. Simmer 15 min until potatoes are tender.", "Season with salt. Serve as-is or over rice."]
+  },
+  "potato-hash": {
+    name: "Savory Potato Hash", time: "20 min", emoji: "🥘",
+    pantryKeys: ["potatoes"],
+    ingredients: ["Potatoes", "Onion", "Red peppers", "Eggs", "Paprika", "Olive oil"],
+    noonTask: "Dice potatoes and peppers. Store in a container.",
+    steps: ["Heat oil in pan. Add potatoes. Cook 10 min, stirring occasionally.", "Add onion + pepper. Cook 5 more min.", "Make wells. Crack eggs in. Cover 3–4 min.", "Season with paprika, salt, pepper."]
+  },
+  "refried-bean-tacos": {
+    name: "Refried Bean Tacos", time: "10 min", emoji: "🌮",
+    pantryKeys: ["refried beans"],
+    ingredients: ["Refried beans", "Tortillas", "Salsa", "Romaine", "Greek yogurt", "Lime", "Canned green chilies"],
+    noonTask: "Nothing — this is your fastest weeknight meal.",
+    steps: ["Warm refried beans in a pan with a splash of water, 3 min.", "Warm tortillas.", "Spread beans on tortillas.", "Top with salsa, romaine, green chilies, yogurt, lime."]
+  },
+  "black-bean-bowl": {
+    name: "Black Bean Rice Bowl", time: "12 min", emoji: "🫘",
+    pantryKeys: ["black beans"],
+    ingredients: ["Black beans", "Rice", "Salsa", "Greek yogurt", "Avocado", "Lime", "Cumin"],
+    noonTask: "Nothing to prep.",
+    steps: ["Warm black beans with cumin + salt in pan 3 min.", "Warm rice 90 sec.", "Build bowl: rice → beans → salsa.", "Top with Greek yogurt + lime squeeze."]
+  },
+  "black-bean-quesadilla": {
+    name: "Black Bean Quesadilla", time: "12 min", emoji: "🫓",
+    pantryKeys: ["black beans"],
+    ingredients: ["Black beans", "Tortillas", "Cheese", "Salsa", "Red peppers", "Canned green chilies"],
+    noonTask: "Nothing to prep.",
+    steps: ["Mash black beans with fork. Season with cumin + salt.", "Spread beans on half a tortilla. Add peppers + chilies + cheese.", "Fold tortilla. Cook in dry pan 2–3 min per side.", "Slice and serve with salsa."]
+  },
+  "lentil-soup": {
+    name: "Red Lentil Soup", time: "22 min", emoji: "🫕",
+    pantryKeys: ["lentils"],
+    ingredients: ["Red lentils", "Coconut milk", "Tomato paste", "Onion", "Garlic", "Cumin", "Turmeric"],
+    noonTask: "Rinse lentils and leave in a bowl of water in the fridge.",
+    steps: ["Sauté onion + garlic + cumin + turmeric 3 min.", "Add tomato paste. Stir 1 min.", "Add drained lentils + 3 cups water or broth.", "Simmer 15 min until lentils are soft.", "Stir in coconut milk. Blend partially or serve as-is."]
+  },
+  "chickpea-curry": {
+    name: "Chickpea Tikka Masala", time: "18 min", emoji: "🟠",
+    pantryKeys: ["chickpeas"],
+    ingredients: ["Chickpeas", "Tikka masala sauce", "Coconut milk", "Onion", "Garlic", "Rice"],
+    noonTask: "Nothing — this is all pantry staples.",
+    steps: ["Sauté onion + garlic 3 min.", "Add chickpeas. Cook 2 min.", "Add tikka masala + coconut milk. Simmer 10 min.", "Serve over rice."]
+  },
+  "hummus-bowl": {
+    name: "Mediterranean Hummus Power Bowl", time: "10 min", emoji: "🫙",
+    pantryKeys: ["hummus"],
+    ingredients: ["Hummus", "Romaine", "Kalamata olives", "Red peppers", "Pickled beets", "Lemon", "Olive oil"],
+    noonTask: "Nothing — this is a no-cook assembly bowl.",
+    steps: ["Spread hummus thick in a bowl.", "Add romaine, olives, roasted red peppers, pickled beets.", "Drizzle with olive oil + lemon juice.", "Season with salt + pepper. Serve with pita or crackers."]
+  },
+  "nori-salmon-wrap": {
+    name: "Nori Salmon Hand Roll", time: "12 min", emoji: "🍣",
+    pantryKeys: ["salmon", "nori"],
+    ingredients: ["Salmon", "Nori sheets", "Rice", "Wasabi", "Soy sauce", "Cucumber"],
+    noonTask: "Move salmon to fridge. Cook it in the morning if you want it cold tonight.",
+    steps: ["Cook salmon simply with salt + sesame oil, 4 min per side. Flake.", "Warm rice. Season with rice vinegar + sugar.", "Lay nori flat. Add rice on left side.", "Add salmon + cucumber + tiny bit of wasabi.", "Roll into cone shape. Dip in soy sauce."]
+  },
+  "nori-tofu-wrap": {
+    name: "Nori Tofu Rice Wrap", time: "15 min", emoji: "🌿",
+    pantryKeys: ["tofu", "nori"],
+    ingredients: ["Tofu", "Nori sheets", "Rice", "Soy sauce", "Sesame oil", "Avocado", "Carrots"],
+    noonTask: "Pan-fry tofu strips with soy sauce. Let cool. Refrigerate.",
+    steps: ["Warm rice. Season with rice vinegar.", "Lay nori flat. Spread rice on half.", "Add tofu strips, shredded carrot, avocado.", "Roll tightly. Slice in half.", "Dip in soy sauce + sesame oil."]
+  },
+  "kelp-miso-soup": {
+    name: "Miso Soup with Kelp & Tofu", time: "10 min", emoji: "🍵",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Miso paste", "Dried kelp flakes", "Green onion", "Sesame seeds"],
+    noonTask: "Nothing to prep — this is a 10-minute soup.",
+    steps: ["Bring 3 cups water to a simmer. Add kelp flakes.", "Simmer 3 min.", "Whisk in 2 tbsp miso (don't boil after adding miso).", "Add cubed tofu. Warm through 2 min.", "Top with green onion + sesame seeds."]
+  },
+  "pineapple-chicken": {
+    name: "Sweet & Sour Pineapple Chicken", time: "20 min", emoji: "🍍",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Pineapple", "Soy sauce", "Honey", "Red peppers", "Garlic", "Rice"],
+    noonTask: "Cube chicken. Mix soy sauce + honey + garlic. Pour over chicken. Refrigerate.",
+    steps: ["Cook chicken in hot pan 5–6 min.", "Add pineapple chunks + red pepper. Cook 3 min.", "Add a splash more soy + honey. Toss.", "Serve over rice."]
+  },
+  "pineapple-tofu": {
+    name: "Sweet & Sour Tofu", time: "18 min", emoji: "🍍",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Pineapple", "Soy sauce", "Honey", "Red peppers", "Garlic", "Rice"],
+    noonTask: "Press and cube tofu. Refrigerate uncovered.",
+    steps: ["Pan-fry tofu until golden. Set aside.", "Cook pepper + garlic 2 min.", "Add pineapple + soy + honey. Simmer 2 min.", "Add tofu back. Toss.", "Serve over rice."]
+  },
+  "chili-crisp-noodles": {
+    name: "Chili Crisp Noodles", time: "12 min", emoji: "🌶️",
+    pantryKeys: ["chili crisp"],
+    ingredients: ["Noodles", "Chili crisp", "Soy sauce", "Sesame oil", "Garlic", "Eggs", "Green onion"],
+    noonTask: "Nothing — fastest noodle dish in the rotation.",
+    steps: ["Boil noodles per package. Drain.", "Mix chili crisp + soy sauce + sesame oil + minced garlic.", "Toss hot noodles in sauce.", "Top with a soft-boiled or fried egg.", "Finish with green onion."]
+  },
+  "chili-crisp-salmon": {
+    name: "Chili Crisp Salmon Bowl", time: "18 min", emoji: "🔥",
+    pantryKeys: ["salmon", "chili crisp"],
+    ingredients: ["Salmon", "Chili crisp", "Soy sauce", "Rice", "Greens", "Sesame seeds"],
+    noonTask: "Mix chili crisp + soy sauce. Spoon over salmon. Refrigerate.",
+    steps: ["Bake salmon at 400°F for 12–14 min.", "Warm rice. Wilt greens in pan 2 min.", "Flake salmon over rice and greens.", "Drizzle extra chili crisp on top. Sesame seeds to finish."]
+  },
+  "greek-yogurt-chicken": {
+    name: "Greek Yogurt Marinated Chicken", time: "22 min", emoji: "🫙",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Greek yogurt", "Garlic", "Lemon", "Cumin", "Olive oil", "Greens"],
+    noonTask: "Coat chicken in Greek yogurt + garlic + cumin + lemon. Refrigerate — the yogurt tenderizes it all day.",
+    steps: ["Wipe off excess marinade. Cook chicken in oiled pan 5–6 min per side.", "Rest 2 min. Slice.", "Sauté greens quickly.", "Serve sliced chicken over greens with extra lemon."]
+  },
+  "horseradish-salmon": {
+    name: "Horseradish Crusted Salmon", time: "18 min", emoji: "🌿",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Horseradish", "Whole grain mustard", "Lemon", "Olive oil", "Greens"],
+    noonTask: "Mix horseradish + mustard + olive oil. Spread on salmon. Refrigerate.",
+    steps: ["Bake salmon at 400°F for 14 min.", "Meanwhile, sauté greens with garlic 3 min.", "Plate greens, top with salmon.", "Squeeze lemon over everything."]
+  },
+  "wasabi-tuna": {
+    name: "Wasabi Soy Tuna Bowl", time: "12 min", emoji: "🟢",
+    pantryKeys: ["tuna"],
+    ingredients: ["Tuna (canned or fresh)", "Wasabi", "Soy sauce", "Rice", "Nori", "Sesame seeds", "Cucumber"],
+    noonTask: "If canned: nothing to do. If fresh: move to fridge.",
+    steps: ["Mix wasabi + soy sauce to taste.", "Warm rice.", "Arrange tuna over rice.", "Drizzle wasabi-soy sauce.", "Top with torn nori, sesame seeds, cucumber slices."]
+  },
+  "almond-milk-smoothie-bowl": {
+    name: "Green Smoothie Bowl", time: "8 min", emoji: "💚",
+    pantryKeys: ["almond milk"],
+    ingredients: ["Almond milk", "Frozen banana", "Kale", "Flaxseed oil", "Honey", "Granola"],
+    noonTask: "Nothing — this also works as a quick dinner when you truly have no energy.",
+    steps: ["Blend frozen banana + kale + almond milk + flaxseed oil in Vitamix.", "Pour into bowl — should be thick.", "Top with granola, drizzle of honey, seeds.", "Eat immediately."]
+  },
+  "carrot-ginger-soup": {
+    name: "Blended Carrot Ginger Soup", time: "20 min", emoji: "🥕",
+    pantryKeys: ["carrots"],
+    ingredients: ["Carrots", "Ginger", "Coconut milk", "Onion", "Garlic", "Vegetable broth", "Turmeric"],
+    noonTask: "Chop carrots and onion. Leave in a container in the fridge.",
+    steps: ["Sauté onion + garlic + ginger + turmeric 3 min.", "Add carrots + 3 cups broth. Simmer 15 min.", "Transfer to Vitamix. Blend silky smooth.", "Return to pot. Stir in coconut milk. Heat through.", "Season with salt + pepper."]
+  },
+  "potato-leek-soup": {
+    name: "Blended Potato Leek Soup", time: "22 min", emoji: "🧅",
+    pantryKeys: ["potatoes"],
+    ingredients: ["Potatoes", "Onion", "Garlic", "Vegetable broth", "Olive oil", "Thyme"],
+    noonTask: "Cube potatoes and slice onion. Store in fridge.",
+    steps: ["Sauté onion + garlic + thyme in olive oil 3 min.", "Add potatoes + broth. Simmer 15 min.", "Blend in Vitamix until smooth.", "Return to pot. Season well. Heat through.", "Top with a drizzle of olive oil."]
+  },
+  "tomato-basil-soup": {
+    name: "Blended Tomato Basil Soup", time: "18 min", emoji: "🍅",
+    pantryKeys: ["tomato sauce"],
+    ingredients: ["Tomato sauce", "Diced canned tomatoes", "Onion", "Garlic", "Basil", "Olive oil", "Coconut milk"],
+    noonTask: "Nothing — all pantry staples.",
+    steps: ["Sauté onion + garlic in olive oil 3 min.", "Add diced tomatoes + tomato sauce. Simmer 8 min.", "Add basil. Transfer to Vitamix. Blend smooth.", "Return to pot. Stir in coconut milk.", "Season. Serve with crusty bread."]
+  },
+  "lemongrass-chicken-soup": {
+    name: "Lemongrass Chicken Soup", time: "20 min", emoji: "🌿",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Lemongrass paste", "Coconut milk", "Ginger", "Fish sauce", "Lime", "Rice noodles"],
+    noonTask: "Slice chicken thin. Refrigerate.",
+    steps: ["Bring 3 cups water + coconut milk to simmer.", "Add lemongrass paste + ginger + fish sauce.", "Add chicken. Simmer 8 min.", "Add rice noodles. Cook 3 more min.", "Finish with lime juice. Serve."]
+  },
+  "fish-sauce-greens": {
+    name: "Fish Sauce Glazed Greens + Tofu", time: "14 min", emoji: "🥬",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Greens", "Fish sauce", "Garlic", "Honey", "Sesame oil", "Rice"],
+    noonTask: "Mix fish sauce + honey + garlic as a glaze.",
+    steps: ["Pan-fry tofu until golden 6 min.", "Add greens to pan. Stir-fry 2 min.", "Pour fish sauce glaze over everything. Toss 1 min.", "Serve over rice."]
+  },
+  "oyster-sauce-chicken": {
+    name: "Oyster Sauce Chicken & Broccoli", time: "18 min", emoji: "🥦",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Oyster sauce", "Broccoli", "Garlic", "Sesame oil", "Rice"],
+    noonTask: "Slice chicken. Mix oyster sauce + sesame oil + garlic. Coat chicken. Refrigerate.",
+    steps: ["Stir-fry chicken in hot wok 4–5 min.", "Add broccoli. Stir-fry 3 min.", "Add remaining sauce. Toss everything together.", "Serve over rice."]
+  },
+  "chu-hou-beef": {
+    name: "Chu Hou Braised Tofu", time: "20 min", emoji: "🫙",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Chu hou paste", "Soy sauce", "Garlic", "Ginger", "Rice", "Greens"],
+    noonTask: "Slice tofu thick. Mix chu hou paste + soy + garlic + ginger. Pour over tofu.",
+    steps: ["Heat oil in pan. Add tofu slices. Brown 3 min per side.", "Add chu hou sauce. Simmer 8 min.", "Add greens at the end. Wilt 2 min.", "Serve over rice with sauce spooned on top."]
+  },
+  "fermented-black-bean-chicken": {
+    name: "Black Bean Sauce Chicken", time: "20 min", emoji: "🫘",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Fermented black beans", "Garlic", "Ginger", "Soy sauce", "Sesame oil", "Green peppers", "Rice"],
+    noonTask: "Slice chicken. Mix fermented black beans (mashed) + soy + garlic + ginger. Coat chicken.",
+    steps: ["Heat wok. Stir-fry chicken 4–5 min.", "Add green peppers. Cook 2 min.", "Add black bean sauce. Toss everything.", "Finish with sesame oil. Serve over rice."]
+  },
+  "tamari-salmon-rice": {
+    name: "Tamari Glazed Salmon Rice", time: "18 min", emoji: "🍶",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Tamari", "Honey", "Garlic", "Sesame oil", "Rice", "Greens"],
+    noonTask: "Mix tamari + honey + garlic. Spoon over salmon. Refrigerate.",
+    steps: ["Pan-sear salmon in sesame oil 4 min per side.", "Brush extra glaze on in last 2 min.", "Warm rice. Wilt greens in same pan.", "Serve salmon over rice and greens."]
+  },
+  "worcestershire-chicken": {
+    name: "Worcestershire Glazed Chicken", time: "20 min", emoji: "🍖",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Worcestershire sauce", "Whole grain mustard", "Honey", "Garlic", "Potatoes"],
+    noonTask: "Mix Worcestershire + mustard + honey + garlic. Coat chicken. Refrigerate.",
+    steps: ["Preheat oven to 425°F.", "Place chicken on sheet pan with cubed potatoes.", "Roast 20–22 min.", "Brush with extra glaze last 5 min.", "Serve with any greens."]
+  },
+  "balsamic-chicken": {
+    name: "Balsamic Glazed Chicken & Greens", time: "20 min", emoji: "🍇",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Balsamic vinegar", "Honey", "Garlic", "Greens", "Olive oil"],
+    noonTask: "Mix balsamic + honey + garlic. Coat chicken. Refrigerate.",
+    steps: ["Cook chicken in olive oil 5–6 min per side.", "Remove chicken. Add balsamic glaze to pan. Reduce 1 min.", "Return chicken. Coat in glaze.", "Sauté greens in same pan.", "Serve together."]
+  },
+  "red-wine-tofu": {
+    name: "Red Wine Braised Tofu & Mushrooms", time: "22 min", emoji: "🍷",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Red wine vinegar", "Mushrooms", "Thyme", "Garlic", "Tomato paste", "Rice"],
+    noonTask: "Slice tofu and mushrooms. Refrigerate.",
+    steps: ["Brown tofu in olive oil 3 min per side. Set aside.", "Sauté mushrooms + garlic + thyme 4 min.", "Add tomato paste + red wine vinegar. Stir 1 min.", "Add tofu back. Simmer 8 min.", "Serve over rice."]
+  },
+  "capers-tilapia": {
+    name: "Piccata-Style Tilapia", time: "16 min", emoji: "🐟",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia", "Capers", "Lemon", "White wine", "Garlic", "Olive oil", "Greens"],
+    noonTask: "Season tilapia with salt and pepper. Refrigerate.",
+    steps: ["Cook tilapia in olive oil 3–4 min per side. Remove.", "Add garlic + white wine + lemon juice to pan. Simmer 2 min.", "Add capers. Stir.", "Return tilapia to pan to warm through.", "Serve with greens."]
+  },
+  "kalamata-chicken": {
+    name: "Mediterranean Olive Chicken", time: "22 min", emoji: "🫒",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Kalamata olives", "Diced canned tomatoes", "Garlic", "Oregano", "Olive oil", "Rice or potatoes"],
+    noonTask: "Coat chicken with garlic + oregano + olive oil. Refrigerate.",
+    steps: ["Brown chicken in olive oil 4 min per side.", "Add tomatoes + olives. Stir.", "Cover. Simmer 12 min.", "Serve over rice or with roasted potatoes."]
+  },
+  "ginger-carrot-salmon": {
+    name: "Ginger Glazed Salmon & Carrots", time: "20 min", emoji: "🥕",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Ginger", "Honey", "Soy sauce", "Carrots", "Sesame oil", "Rice"],
+    noonTask: "Mix ginger + honey + soy. Spread on salmon. Refrigerate. Slice carrots into coins.",
+    steps: ["Roast carrots at 400°F for 15 min.", "Bake salmon alongside for 12–14 min.", "Warm rice.", "Plate rice → carrots → salmon. Drizzle any pan juices."]
+  },
+  "thai-basil-chicken": {
+    name: "Thai Basil Chicken", time: "15 min", emoji: "🌿",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Basil", "Fish sauce", "Soy sauce", "Garlic", "Red peppers", "Eggs", "Rice"],
+    noonTask: "Mince chicken or leave as thin slices. Refrigerate.",
+    steps: ["Heat wok very hot. Add oil.", "Add garlic + red peppers 30 sec.", "Add chicken. Cook 4–5 min.", "Add fish sauce + soy sauce. Toss.", "Add handful of basil at the very end. Serve over rice with fried egg on top."]
+  },
+  "turmeric-chicken-soup": {
+    name: "Golden Turmeric Chicken Soup", time: "20 min", emoji: "🌟",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Turmeric", "Ginger", "Coconut milk", "Garlic", "Onion", "Rice noodles"],
+    noonTask: "Slice chicken thin. Refrigerate.",
+    steps: ["Sauté onion + garlic + ginger + turmeric 3 min.", "Add chicken. Cook 5 min.", "Add 3 cups broth + coconut milk. Simmer 8 min.", "Add noodles. Cook 3 min.", "Serve."]
+  },
+  "cardamom-chicken": {
+    name: "Cardamom Spiced Chicken & Rice", time: "22 min", emoji: "✨",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Ground cardamom", "Cinnamon", "Onion", "Garlic", "Ginger", "Tomato paste", "Rice"],
+    noonTask: "Mix cardamom + cinnamon + salt. Coat chicken. Refrigerate.",
+    steps: ["Brown chicken in ghee 4 min per side.", "Sauté onion + garlic + ginger + tomato paste 3 min.", "Add chicken back. Add ½ cup water. Cover.", "Simmer 12 min.", "Serve over rice."]
+  },
+  "dill-salmon": {
+    name: "Dill & Mustard Salmon", time: "16 min", emoji: "🌿",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Dill weed", "Whole grain mustard", "Lemon", "Olive oil", "Greens"],
+    noonTask: "Mix dill + mustard + olive oil + lemon. Spread on salmon. Refrigerate.",
+    steps: ["Bake salmon at 400°F for 14 min.", "Sauté greens with garlic 3 min.", "Plate greens + salmon. Squeeze lemon on top."]
+  },
+  "rosemary-chicken-potatoes": {
+    name: "Rosemary Chicken & Roasted Potatoes", time: "25 min", emoji: "🌿",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Potatoes", "Rosemary", "Garlic", "Olive oil", "Lemon"],
+    noonTask: "Toss chicken + potatoes with rosemary + garlic + olive oil. Leave in oven dish in fridge.",
+    steps: ["Preheat oven to 425°F.", "Roast chicken + potatoes together 20–25 min.", "Squeeze lemon over everything.", "Rest 2 min before serving."]
+  },
+  "sage-turkey-bowl": {
+    name: "Sage & Onion Chicken Bowl", time: "20 min", emoji: "🍂",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Sage", "Onion", "Garlic", "Butter or ghee", "Rice", "Greens"],
+    noonTask: "Season chicken with sage + salt + pepper. Refrigerate.",
+    steps: ["Melt ghee in pan. Add onion + garlic. Cook 3 min.", "Add chicken. Cook 5–6 min per side.", "Baste with pan juices.", "Serve over rice with greens."]
+  },
+  "thyme-mushroom-tofu": {
+    name: "Thyme Mushroom Tofu Sauté", time: "18 min", emoji: "🍄",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Mushrooms", "Thyme", "Garlic", "White wine", "Olive oil", "Rice"],
+    noonTask: "Slice tofu and mushrooms. Refrigerate.",
+    steps: ["Brown tofu in olive oil 3 min per side. Set aside.", "Sauté mushrooms + garlic + thyme 4 min.", "Add splash of white wine. Cook 1 min.", "Return tofu. Toss everything.", "Serve over rice."]
+  },
+  "oregano-tilapia": {
+    name: "Greek Oregano Tilapia", time: "16 min", emoji: "🌿",
+    pantryKeys: ["tilapia"],
+    ingredients: ["Tilapia", "Oregano", "Lemon", "Olive oil", "Garlic", "Kalamata olives", "Tomatoes"],
+    noonTask: "Season tilapia with oregano + garlic + olive oil. Refrigerate.",
+    steps: ["Cook tilapia in olive oil 3–4 min per side.", "Add olives + diced tomatoes to pan. Warm 2 min.", "Squeeze lemon over everything.", "Serve as-is."]
+  },
+  "coconut-farro-bowl": {
+    name: "Coconut Farro Power Bowl", time: "15 min", emoji: "🥥",
+    pantryKeys: ["farro"],
+    ingredients: ["Farro (prepped)", "Coconut milk", "Kale", "Turmeric", "Garlic", "Lemon"],
+    noonTask: "Nothing — farro is already prepped from Saturday.",
+    steps: ["Warm farro in pan with splash of coconut milk + turmeric.", "Sauté kale with garlic 3 min.", "Plate farro → kale.", "Squeeze lemon + drizzle olive oil. Season well."]
+  },
+  "tarragon-chicken": {
+    name: "Tarragon Chicken", time: "20 min", emoji: "🌿",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Tarragon", "White wine", "Garlic", "Greek yogurt", "Olive oil"],
+    noonTask: "Season chicken with tarragon + salt + pepper. Refrigerate.",
+    steps: ["Brown chicken in olive oil 4–5 min per side.", "Remove chicken. Add garlic + white wine to pan. Reduce 2 min.", "Stir in 2 tbsp Greek yogurt + more tarragon.", "Return chicken. Coat in sauce. Heat through.", "Serve with greens or potatoes."]
+  },
+  "citric-tahini-bowl": {
+    name: "Tahini Citrus Greens Bowl", time: "12 min", emoji: "🍋",
+    pantryKeys: ["greens"],
+    ingredients: ["Greens", "Tahini", "Lemon", "Citric acid", "Garlic", "Chickpeas", "Olive oil"],
+    noonTask: "Blend tahini + lemon + garlic + citric acid + water into dressing. Refrigerate.",
+    steps: ["Sauté greens with garlic 3 min.", "Warm chickpeas in same pan.", "Build bowl: greens + chickpeas.", "Drizzle tahini dressing generously.", "Top with sesame seeds."]
+  },
+  "onion-soup-chicken": {
+    name: "French Onion Chicken", time: "22 min", emoji: "🧅",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Onion soup mix", "Onion", "Olive oil", "Broth", "Cheese"],
+    noonTask: "Mix onion soup mix + a little water. Coat chicken. Refrigerate.",
+    steps: ["Sear chicken in olive oil 4 min per side.", "Add sliced onion + broth. Cover. Simmer 12 min.", "Uncover. Top with cheese. Broil 2 min.", "Serve with bread or potatoes."]
+  },
+  "liquid-smoke-tofu": {
+    name: "Smoky BBQ Tofu", time: "18 min", emoji: "💨",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Liquid smoke", "Barbecue sauce", "Soy sauce", "Garlic", "Rice"],
+    noonTask: "Mix BBQ sauce + liquid smoke + soy + garlic. Coat tofu. Refrigerate.",
+    steps: ["Pan-fry tofu in oil until golden, 6–8 min.", "Add extra sauce. Toss. Cook 2 more min.", "Serve over rice with any slaw or greens."]
+  },
+  "msg-ramen-bowl": {
+    name: "Savory Ramen-Style Noodle Bowl", time: "15 min", emoji: "🍜",
+    pantryKeys: ["eggs"],
+    ingredients: ["Ramen or noodles", "Miso paste", "Soy sauce", "Sesame oil", "Eggs", "Green onion", "Greens", "MSG"],
+    noonTask: "Soft boil 2 eggs (6 min). Peel and refrigerate in a splash of soy sauce.",
+    steps: ["Bring 3 cups water to boil. Dissolve miso + soy + sesame oil + pinch of MSG.", "Cook noodles in broth 3–4 min.", "Add greens in last 1 min.", "Top with halved soy eggs + green onion.", "Drizzle chili crisp if you like heat."]
+  },
+  "salsa-chicken-bowl": {
+    name: "Salsa Verde Chicken Bowl", time: "18 min", emoji: "🌶️",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Salsa", "Black beans", "Rice", "Greek yogurt", "Lime", "Canned green chilies"],
+    noonTask: "Pour salsa over chicken. Refrigerate.",
+    steps: ["Cook chicken in salsa over medium heat 15 min, flipping once.", "Shred chicken with two forks in the pan.", "Warm rice + beans.", "Build bowl: rice → beans → chicken → chilies.", "Top with yogurt + lime."]
+  },
+  "alfredo-chicken": {
+    name: "Chicken Alfredo Pasta", time: "20 min", emoji: "🍝",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Alfredo sauce", "Pasta", "Garlic", "Olive oil", "Parmesan", "Greens"],
+    noonTask: "Slice or cube chicken. Season with garlic + salt. Refrigerate.",
+    steps: ["Cook pasta per package. Drain, reserving ½ cup pasta water.", "Cook chicken in olive oil 5–6 min.", "Add Alfredo sauce + splash of pasta water. Stir.", "Add pasta + greens. Toss until coated.", "Top with Parmesan."]
+  },
+  "kale-white-bean-pasta": {
+    name: "Kale & White Bean Pasta", time: "18 min", emoji: "🌿",
+    pantryKeys: ["kale", "black beans"],
+    ingredients: ["Kale", "White or black beans", "Pasta", "Garlic", "Olive oil", "Lemon", "Parmesan"],
+    noonTask: "Wash and chop kale. Refrigerate.",
+    steps: ["Cook pasta. Reserve ½ cup pasta water. Drain.", "Sauté garlic in olive oil 1 min.", "Add kale. Wilt 3 min.", "Add beans + pasta + pasta water. Toss.", "Lemon + Parmesan to finish."]
+  },
+  "red-pepper-soup": {
+    name: "Roasted Red Pepper Soup", time: "20 min", emoji: "🫑",
+    pantryKeys: ["red peppers"],
+    ingredients: ["Red peppers", "Tomato sauce", "Onion", "Garlic", "Coconut milk", "Olive oil", "Basil"],
+    noonTask: "Nothing — all pantry staples.",
+    steps: ["Sauté onion + garlic 3 min.", "Add red peppers + tomato sauce. Simmer 8 min.", "Transfer to Vitamix. Blend smooth.", "Return to pot. Stir in coconut milk + basil.", "Season well. Heat and serve."]
+  },
+  "pickled-beet-grain-bowl": {
+    name: "Pickled Beet & Farro Bowl", time: "10 min", emoji: "🫀",
+    pantryKeys: ["farro"],
+    ingredients: ["Farro (prepped)", "Pickled beets", "Greek yogurt", "Walnuts", "Arugula or greens", "Lemon", "Olive oil"],
+    noonTask: "Nothing — this is a no-cook assembly bowl.",
+    steps: ["Warm farro or serve at room temp.", "Build bowl: farro → greens → sliced pickled beets.", "Add dollops of Greek yogurt.", "Top with walnuts.", "Drizzle olive oil + lemon. Season."]
+  },
+  "salmon-pasta": {
+    name: "Lemon Caper Salmon Pasta", time: "20 min", emoji: "🍝",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Pasta", "Capers", "Lemon", "Olive oil", "Garlic", "White wine"],
+    noonTask: "Move salmon to fridge.",
+    steps: ["Cook pasta. Reserve pasta water. Drain.", "Pan-sear salmon 4 min per side. Break into chunks.", "In same pan: garlic + white wine + lemon + capers. Simmer 2 min.", "Toss pasta in sauce + pasta water.", "Add salmon. Serve immediately."]
+  },
+  "tofu-scramble": {
+    name: "Tofu Scramble Bowl", time: "12 min", emoji: "🍳",
+    pantryKeys: ["tofu"],
+    ingredients: ["Tofu", "Turmeric", "Nutritional yeast or soy sauce", "Red peppers", "Onion", "Greens", "Toast or rice"],
+    noonTask: "Nothing — this is the breakfast-for-dinner option.",
+    steps: ["Crumble tofu into pan over medium heat.", "Add turmeric, onion, peppers. Cook 5 min.", "Add greens + soy sauce. Toss 2 more min.", "Serve over rice or with toast."]
+  },
+  "chicken-soup-noodles": {
+    name: "Simple Chicken Noodle Soup", time: "20 min", emoji: "🍲",
+    pantryKeys: ["chicken"],
+    ingredients: ["Chicken", "Rice noodles or pasta", "Carrots", "Onion", "Garlic", "Thyme", "Chicken broth"],
+    noonTask: "Slice chicken thin. Chop carrot and onion. Store in fridge.",
+    steps: ["Bring broth to boil. Add onion + carrot + garlic + thyme.", "Add chicken. Simmer 8 min.", "Add noodles. Cook 3–4 more min.", "Season with salt + pepper. Serve."]
+  },
+  "honey-glazed-salmon": {
+    name: "Honey Glazed Salmon", time: "16 min", emoji: "🍯",
+    pantryKeys: ["salmon"],
+    ingredients: ["Salmon", "Honey", "Soy sauce", "Garlic", "Sesame oil", "Rice", "Sesame seeds"],
+    noonTask: "Mix honey + soy + garlic + sesame oil. Spoon over salmon. Refrigerate.",
+    steps: ["Pan-sear salmon in sesame oil 4 min per side.", "Brush extra honey glaze in last 2 min.", "Warm rice.", "Serve salmon over rice. Top with sesame seeds."]
+  },
+  "falafel-bowl": {
+    name: "Falafel Spice Chickpea Bowl", time: "15 min", emoji: "🧆",
+    pantryKeys: ["hummus"],
+    ingredients: ["Chickpeas or white beans", "Falafel spice", "Hummus", "Romaine", "Tomatoes", "Pickles", "Lemon"],
+    noonTask: "Toss chickpeas with falafel spice + olive oil. Refrigerate.",
+    steps: ["Roast spiced chickpeas in pan or oven until crispy, 10 min.", "Spread hummus in bowl.", "Add romaine, tomato, pickles.", "Top with crispy chickpeas.", "Squeeze lemon over everything."]
+  },
+  "garam-masala-lentils": {
+    name: "Garam Masala Lentil Dal", time: "22 min", emoji: "🟠",
+    pantryKeys: ["lentils"],
+    ingredients: ["Lentils", "Garam masala", "Tomato sauce", "Coconut milk", "Onion", "Garlic", "Ginger", "Rice"],
+    noonTask: "Rinse lentils. Soak in water in fridge.",
+    steps: ["Sauté onion + garlic + ginger + garam masala 3 min.", "Add drained lentils + tomato sauce + 2 cups water.", "Simmer 15 min.", "Stir in coconut milk. Season.", "Serve over rice."]
   }
 };
 
+let alwaysHave = [
+  "Olive oil","Sesame oil","Canola oil","Garlic","Salt","Black pepper","White pepper",
+  "Curry","Butter chicken sauce","Miso paste","Tarragon","White wine","Onion","Garam masala",
+  "Capers","Hoisin sauce","Fish sauce","Whole grain mustard","Coconut milk","Fermented red cabbage",
+  "Red wine vinegar","Kalamata olives","Pickles","Liquid smoke","Basil","Oregano","Thyme",
+  "Rosemary","Sage","Flaxseed oil","Tamari","Soy sauce","Worcestershire sauce","Ponzu sauce",
+  "Balsamic vinegar","Salsa","Onion soup mix","Sesame seeds","Pickled beets","Refried beans",
+  "Black beans","Canned green chilies","Tomato sauce","Ghee","Cumin","Whole cardamom",
+  "Ground cardamom","Ground clove","Dill weed","MSG","Turmeric","Tomato paste",
+  "Diced canned tomatoes","Teriyaki sauce","Achiote","Citric acid","Falafel spice",
+  "Barbecue sauce","Cinnamon","Nutmeg","Mayonnaise","Mustard","Ketchup","Alfredo sauce",
+  "Fermented black beans","Tikka masala","Buffalo sauce","Honey sesame sauce","Nori seaweed",
+  "Dried kelp flakes","Sugar","Flour","Ginger","Lemongrass paste","Oyster sauce","Wasabi",
+  "Chu hou paste","Eggs","Hummus","Pineapple","Chili crisp","Horseradish","Almond milk",
+  "Greek yogurt","Pad Thai sauce","Red peppers","Green peppers","Romaine","Carrots",
+  "Potatoes","Kale","Honey","Chicken"
+];
+
+function renderStaples(filter='') {
+  const grid = document.getElementById('staples-grid');
+  const src = filter
+    ? alwaysHave.filter(i => i.toLowerCase().includes(filter.toLowerCase()))
+    : [...alwaysHave].sort((a,b) => a.localeCompare(b));
+  grid.innerHTML = src.map((item, i) => {
+    const realIdx = alwaysHave.indexOf(item);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;padding:5px 4px;font-size:0.8rem;color:var(--text-soft);border-bottom:1px solid var(--green-pale);">
+      <span><span style="color:var(--green);margin-right:4px;">✓</span>${item}</span>
+      <button onclick="removeStaple(${realIdx})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:0.9rem;padding:0 2px;" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function filterStaples() {
+  const val = document.getElementById('staples-search').value;
+  renderStaples(val);
+}
+
+function addStaple() {
+  const input = document.getElementById('staple-add-input');
+  const val = input.value.trim();
+  if (!val) return;
+  if (alwaysHave.some(i => i.toLowerCase() === val.toLowerCase())) {
+    input.value = '';
+    return;
+  }
+  alwaysHave.push(val);
+  input.value = '';
+  renderStaples(document.getElementById('staples-search').value);
+  rebuildMealDropdown();
+}
+
+function removeStaple(idx) {
+  alwaysHave.splice(idx, 1);
+  renderStaples(document.getElementById('staples-search').value);
+  rebuildMealDropdown();
+}
+
 function getCheckedPantryItems() {
-  // Returns an array of lowercase checked pantry item names
-  return Object.entries(checkedState)
+  // Staples are always included
+  const staples = alwaysHave.map(i => i.toLowerCase());
+  // Weekly pantry: only checked items
+  const weekly = Object.entries(checkedState)
     .filter(([, checked]) => checked)
     .map(([id]) => {
       const sep = id.lastIndexOf('||');
@@ -734,6 +1401,7 @@ function getCheckedPantryItems() {
       return (pantryState[cat]?.[idx] || '').toLowerCase();
     })
     .filter(Boolean);
+  return [...staples, ...weekly];
 }
 
 function getAvailableMeals() {
@@ -838,7 +1506,7 @@ function savePantry() {
 }
 
 function exportPantry() {
-  const data = JSON.stringify({ pantry: pantryState, checked: checkedState }, null, 2);
+  const data = JSON.stringify({ pantry: pantryState, checked: checkedState, alwaysHave }, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -858,6 +1526,8 @@ function importPantry(event) {
       if (data.pantry) {
         pantryState = data.pantry;
         checkedState = data.checked || {};
+        if (Array.isArray(data.alwaysHave)) alwaysHave = data.alwaysHave;
+        renderStaples();
         renderPantry();
         rebuildMealDropdown();
         const msg = document.getElementById('import-msg');
@@ -926,6 +1596,7 @@ function showPage(id) {
   event.target.classList.add('active');
 }
 
+renderStaples();
 renderPantry();
 rebuildMealDropdown();
 </script>
