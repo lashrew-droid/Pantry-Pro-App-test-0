@@ -1377,12 +1377,14 @@ function addStaple() {
   }
   alwaysHave.push(val);
   input.value = '';
+  savePantry();
   renderStaples(document.getElementById('staples-search').value);
   rebuildMealDropdown();
 }
 
 function removeStaple(idx) {
   alwaysHave.splice(idx, 1);
+  savePantry();
   renderStaples(document.getElementById('staples-search').value);
   rebuildMealDropdown();
 }
@@ -1498,11 +1500,31 @@ const defaultPantry = {
   "Grains & Noodles": ["Brown rice", "Soba noodles", "Farro", "Rice noodles"]
 };
 
-let pantryState = JSON.parse(JSON.stringify(defaultPantry));
-let checkedState = {};
+const STORAGE_KEY = 'mealPrepCompanionData';
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+const savedData = loadFromStorage();
+let pantryState = savedData?.pantry || JSON.parse(JSON.stringify(defaultPantry));
+let checkedState = savedData?.checked || {};
+if (savedData?.alwaysHave && Array.isArray(savedData.alwaysHave)) {
+  alwaysHave = savedData.alwaysHave;
+}
 
 function savePantry() {
-  // no-op: data only persists via export/import file
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ pantry: pantryState, checked: checkedState, alwaysHave }));
+  } catch (err) {
+    console.error('Could not save to this browser. Your changes may not persist.', err);
+  }
 }
 
 function exportPantry() {
@@ -1527,6 +1549,7 @@ function importPantry(event) {
         pantryState = data.pantry;
         checkedState = data.checked || {};
         if (Array.isArray(data.alwaysHave)) alwaysHave = data.alwaysHave;
+        savePantry();
         renderStaples();
         renderPantry();
         rebuildMealDropdown();
